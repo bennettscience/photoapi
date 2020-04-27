@@ -1,0 +1,13 @@
+# config files
+.flaskenv
+.coverage
+.vscode
+
+# virtualenv
+venv
+
+# cache files
+__pycache__*
+
+# database
+app.db
