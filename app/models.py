@@ -22,7 +22,7 @@ class Photo(db.Model):
         self.public = public
 
     def __repr__(self):
-        return f'Photo: {self.title}'
+        return f"Photo: {self.title}"
 
     def get_id(self):
         return self.id
@@ -34,3 +34,8 @@ class Photo(db.Model):
     def set_title(self, title):
         self.title = title
         db.session.commit()
+
+    def update(self, k, v):
+        setattr(self, k, v)
+        db.session.commit()
+        return self
