@@ -1,5 +1,6 @@
+from flask import make_response, jsonify, abort, request
 from flask_restful import Resource, reqparse, fields, marshal
-from app import api
+from app import api, app, db
 from app.models import Photo
 
 
@@ -15,39 +16,59 @@ photo_fields = {
 class PhotoListAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument("title", type=str, required=True, location="json")
         self.reqparse.add_argument(
-            "title",
-            type="str",
-            required=True,
-            help="no photo title provided",
-            location="json",
+            "upload_date", type=int, required=True, location="json"
         )
+        self.reqparse.add_argument("public", type=bool, location="json")
         super(PhotoListAPI, self).__init__()
 
     # TODO: Return only public for non-logged in user
     def get(self):
         query = Photo.query.all()
+        # Each record comes in as a Response object that needs
+        # to be serialized for the return value.
         photos = [marshal(photo, photo_fields) for photo in query]
-        return photos
+        return photos, 200
+
+    # TODO: Convert to multipart-form input, not JSON
+    def post(self):
+        args = self.reqparse.parse_args()
+        if not args:
+            abort(jsonify(message=args), 400)
+
+        # Write the photo to the DB
+        # TODO: Save the image to the filesystem
+        p = Photo(args["title"], args["upload_date"], args["public"])
+        db.session.add(p)
+        db.session.commit()
+
+        return {"photo": marshal(p, photo_fields)}, 201
 
 
 class PhotoAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument("title", type="str", location="json")
-        self.reqparse.add_argument("description", type="str", location="json")
+        self.reqparse.add_argument("title", type=str, location="json")
         self.reqparse.add_argument("public", type=bool, location="json")
         super(PhotoAPI, self).__init__()
 
     def get(self, id):
         photo = Photo.query.get(id)
-        return {"photo": marshal(photo, photo_fields)}
-
-    def post(self):
-        pass
+        if photo is None:
+            return "Not found", 404
+        return {"photo": marshal(photo, photo_fields)}, 200
 
     def put(self, id):
-        pass
+        photo = Photo.query.get(id)
+        args = self.reqparse.parse_args()
+        if args is not None:
+            for k, v in dict(args).items():
+                if v is not None:
+                    photo.update(k, v)
+                    # setattr(photo, k, v)
+
+        return {"photo": marshal(photo, photo_fields)}, 200
 
     def delete(self, id):
         pass
