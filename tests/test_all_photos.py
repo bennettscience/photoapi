@@ -20,6 +20,7 @@ class AllPhotosTestCase(unittest.TestCase):
 
     # The API returns a list of objects
     def test_get_all_photos(self):
-        request = self.client.get('/api/v1.0/photos')
-        self.assertIsInstance(request.json, list)
-        self.assertEqual(2, len(request.json))
+        resp = self.client.get('/api/v1.0/photos')
+        self.assertIsInstance(resp.json, list)
+        self.assertEqual(2, len(resp.json))
+        self.assertTrue(resp.status_code == 200)
