@@ -11,7 +11,7 @@ from app import db
 
 @dataclass
 class Photo(db.Model):
-    id = db.Column(db.Integer, primary_key=True, auto_increment=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String(128), index=True)
     upload_date = db.Column(db.Integer)
     public = db.Column(db.Boolean, default=False)
