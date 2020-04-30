@@ -5,10 +5,10 @@ from app.models import Photo
 
 class PhotoModelCase(unittest.TestCase):
     def setUp(self):
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://'
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite://"
         db.create_all()
 
-        photo = Photo('something', 123456, 0)
+        photo = Photo("something", 123456, 0)
         db.session.add(photo)
 
     def tearDown(self):
@@ -16,11 +16,11 @@ class PhotoModelCase(unittest.TestCase):
         db.drop_all()
 
     def test_new_photo(self):
-        photo = Photo('something else', 999999, 0)
+        photo = Photo("something else", 999999, 0)
         db.session.add(photo)
         db.session.commit()
 
-        self.assertTrue(photo.title == 'something else')
+        self.assertTrue(photo.title == "something else")
 
     def test_get_id(self):
         photo = Photo.query.get(1)
@@ -33,6 +33,6 @@ class PhotoModelCase(unittest.TestCase):
 
     def test_set_title(self):
         photo = Photo.query.get(1)
-        photo.set_title('A different title')
-        self.assertEqual('A different title', photo.title)
-        self.assertNotEqual('something else', photo.title)
+        photo.set_title("A different title")
+        self.assertEqual("A different title", photo.title)
+        self.assertNotEqual("something else", photo.title)
