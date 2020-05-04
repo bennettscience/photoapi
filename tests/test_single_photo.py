@@ -51,7 +51,7 @@ class PhotoAPITestCase(unittest.TestCase):
         self.assertEqual(
             data["photo"]["public"], 0, "The public option has not changed"
         )
-    
+
     def test_all_update(self):
         update = {
             "title": "Update existing",
