@@ -1,5 +1,8 @@
 import unittest
 import json
+from io import BytesIO
+from datetime import datetime
+from pathlib import Path
 from app import app, db
 from app.models import Photo
 
@@ -10,8 +13,8 @@ class PhotoAPITestCase(unittest.TestCase):
         db.create_all()
         self.client = app.test_client()
 
-        p = Photo("Existing Photo", 123456, 0)
-        db.session.add(p)
+        upload = Photo("Existing Photo", 123456, 0, 'uploads/hello.jpg')
+        db.session.add(upload)
         db.session.commit()
 
     def tearDown(self):
@@ -30,14 +33,28 @@ class PhotoAPITestCase(unittest.TestCase):
         self.assertTrue(resp.status_code == 404)
 
     def test_photo_upload(self):
-        photo = {"title": "test upload 1", "upload_date": 123456, "public": 0}
-        headers = {"Content-Type": "application/json"}
         # TODO: This sends JSON, not a form. Convert to form input
+        payload = {
+            "file": (BytesIO(b'Hello there'), 'hello.jpg'),
+            "title": "New file",
+            "upload_date": datetime.timestamp(datetime.now()),
+            "public": False
+        }
         resp = self.client.post(
-            "/api/v1.0/photos", data=json.dumps(photo), headers=headers
+            "/api/v1.0/photos", buffered=True,
+            content_type="multipart/form-data",
+            data=payload
         )
         self.assertEqual(resp.status_code, 201, "The result should be 201 created")
         self.assertIsInstance(resp.json, dict, "The api should return an object")
+
+    def test_bad_file_upload(self):
+        resp = self.client.post(
+            "api/v1.0/photos", buffered=True,
+            content_type="multipart/form-data",
+            data={"file_field": (BytesIO(b'hello there'), 'hello.txt')}
+        )
+        self.assertTrue(resp.status_code == 400)
 
     def test_photo_title_update(self):
         photo = {"title": "This is an update"}
@@ -147,3 +164,16 @@ class PhotoAPITestCase(unittest.TestCase):
         data = resp.json
         self.assertEqual(resp.status_code, 200)
         self.assertTrue(data["message"] == "Successfully deleted")
+
+    def test_get_file_path(self):
+        headers = {
+            "Content-Type": "application/json"
+        }
+
+        resp = self.client.get(
+            f'/api/v1.0/photos/1', headers=headers
+        )
+
+        data = resp.json
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(data["photo"]["file_path"], 'uploads/hello.jpg')

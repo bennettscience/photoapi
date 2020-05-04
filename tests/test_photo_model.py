@@ -8,8 +8,14 @@ class PhotoModelCase(unittest.TestCase):
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite://"
         db.create_all()
 
-        photo = Photo("Photo1", 123456, 0)
+        upload = Photo("Photo1", 123456, 0)
+        db.session.add(upload)
+        db.session.commit()
+
+        photo = Photo.query.get(1)
+        setattr(photo, "file_path", "./uploads/1.png")
         db.session.add(photo)
+        db.session.commit()
 
     def tearDown(self):
         db.session.remove()
