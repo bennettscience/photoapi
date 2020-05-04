@@ -1,4 +1,4 @@
-from flask import make_response, jsonify, abort, request
+from flask import make_response, jsonify, abort, request, Response
 from flask_restful import Resource, reqparse, fields, marshal
 from app import api, app, db
 from app.models import Photo
@@ -6,6 +6,7 @@ from app.models import Photo
 
 # Return all photos with a consistent URL
 photo_fields = {
+    "id": fields.Integer(),
     "title": fields.String(),
     "upload_date": fields.Integer(),
     "public": fields.Boolean(),
@@ -62,16 +63,22 @@ class PhotoAPI(Resource):
     def put(self, id):
         photo = Photo.query.get(id)
         args = self.reqparse.parse_args()
+        # Check for an empty argument object and return
         if args is not None:
-            for k, v in dict(args).items():
-                if v is not None:
-                    photo.update(k, v)
-                    # setattr(photo, k, v)
+            # Check that at least one value is not NoneType
+            if not all(val is None for val in args.values()):
+                for k, v in dict(args).items():
+                    if v is not None:
+                        photo.update(k, v)
 
-        return {"photo": marshal(photo, photo_fields)}, 200
+                return {"photo": marshal(photo, photo_fields)}, 200
+            else:
+                abort(400)
 
     def delete(self, id):
-        pass
+        Photo.query.filter_by(id=id).delete()
+        db.session.commit()
+        return {"message": "Successfully deleted"}, 200
 
 
 api.add_resource(PhotoListAPI, "/api/v1.0/photos", endpoint="photos")
