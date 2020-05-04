@@ -12,3 +12,7 @@ __pycache__*
 # database
 app.db
 photos-sqlite-browse.sqbpro
+
+# misc
+uploads/
+uploads/*
