@@ -8,5 +8,5 @@ class Config(object):
         'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_RECORD_QUERIES = False
-    UPLOAD_FOLDER = './uploads'
+    UPLOAD_FOLDER = './static/uploads'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
