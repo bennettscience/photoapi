@@ -8,7 +8,7 @@ class PhotoModelCase(unittest.TestCase):
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite://"
         db.create_all()
 
-        upload = Photo("Photo1", 123456, 0)
+        upload = Photo("Photo1", 123456, 0, 'photo1.jpg')
         db.session.add(upload)
         db.session.commit()
 
@@ -22,7 +22,7 @@ class PhotoModelCase(unittest.TestCase):
         db.drop_all()
 
     def test_new_photo(self):
-        photo = Photo("Photo2", 999999, 0)
+        photo = Photo("Photo2", 999999, 0, 'photo2.jpg')
         db.session.add(photo)
         db.session.commit()
 

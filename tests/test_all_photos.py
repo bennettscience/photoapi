@@ -9,8 +9,8 @@ class AllPhotosTestCase(unittest.TestCase):
         db.create_all()
         self.client = app.test_client()
 
-        p1 = Photo("something", 123456, 0)
-        p2 = Photo("something else", 999123, 1)
+        p1 = Photo("Test1", 123456, 0, 'test1.jpg')
+        p2 = Photo("Test2", 999123, 1, 'test2.jpg')
         db.session.add_all([p1, p2])
         db.session.commit()
 
