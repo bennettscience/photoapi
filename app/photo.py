@@ -1,8 +1,8 @@
 import os
 import werkzeug
 from werkzeug.utils import secure_filename
-from flask import make_response, jsonify, abort, request, Response
-from flask_restful import Resource, reqparse, fields, marshal
+from flask import make_response, jsonify, abort, request, Response, send_from_directory
+from flask_restful import Resource, reqparse, fields, marshal, inputs
 from app import api, app, db
 from app.models import Photo
 from datetime import datetime
@@ -15,7 +15,7 @@ photo_fields = {
     "upload_date": fields.Integer(),
     "public": fields.Boolean(),
     "uri": fields.Url("photo"),
-    "file_path": fields.String()
+    "filename": fields.String()
 }
 
 
@@ -26,7 +26,7 @@ class PhotoListAPI(Resource):
         self.reqparse.add_argument(
             "upload_date", type=str, location="form"
         )
-        self.reqparse.add_argument("public", type=bool, location="form")
+        self.reqparse.add_argument("public", type=inputs.boolean, location="form")
         self.reqparse.add_argument("file", type=werkzeug.datastructures.FileStorage, location='files')
         super(PhotoListAPI, self).__init__()
 
@@ -54,11 +54,11 @@ class PhotoListAPI(Resource):
             filename = secure_filename(upload_file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             upload_file.save(file_path)
-            p = Photo(args["title"], args["upload_date"], args["public"], file_path)
+            p = Photo(args["title"], args["upload_date"], args["public"], filename)
             db.session.add(p)
             db.session.commit()
 
-            return {"photo": marshal(p, photo_fields)}, 201
+            return marshal(p, photo_fields), 201
 
     @staticmethod
     def allowed_filename(filename):
@@ -77,9 +77,11 @@ class PhotoAPI(Resource):
         photo = Photo.query.get(id)
         if photo is None:
             return "Not found", 404
-        return {"photo": marshal(photo, photo_fields)}, 200
+        return marshal(photo, photo_fields), 200
 
     def put(self, id):
+        if id is None:
+            abort(400)
         photo = Photo.query.get(id)
         args = self.reqparse.parse_args()
         # Check for an empty argument object and return
@@ -90,15 +92,27 @@ class PhotoAPI(Resource):
                     if v is not None:
                         photo.update(k, v)
 
-                return {"photo": marshal(photo, photo_fields)}, 200
+                return marshal(photo, photo_fields), 200
             else:
                 abort(400)
 
     def delete(self, id):
-        Photo.query.filter_by(id=id).delete()
+        photo = Photo.query.filter_by(id=id).first()
+        # Get the file_path as a variable before deletion
+        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], photo.filename))
+        db.session.delete(photo)
         db.session.commit()
+
         return {"message": "Successfully deleted"}, 200
+
+
+class PhotoFile(Resource):
+    def get(self, filename):
+        root_dir = os.path.dirname(os.getcwd())
+        print(os.path.join(root_dir, 'static', 'uploads'))
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 api.add_resource(PhotoListAPI, "/api/v1.0/photos", endpoint="photos")
 api.add_resource(PhotoAPI, "/api/v1.0/photos/<id>", endpoint="photo")
+api.add_resource(PhotoFile, "/static/uploads/<path:filename>")
