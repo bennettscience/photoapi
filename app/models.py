@@ -15,13 +15,13 @@ class Photo(db.Model):
     title = db.Column(db.String(128), index=True)
     upload_date = db.Column(db.Integer)
     public = db.Column(db.Boolean, default=False)
-    file_path = db.Column(db.String(128))
+    filename = db.Column(db.String(128))
 
-    def __init__(self, title, upload_date, public, file_path):
+    def __init__(self, title, upload_date, public, filename):
         self.title = title
         self.upload_date = upload_date
         self.public = public
-        self.file_path = file_path
+        self.filename = filename
 
     def __repr__(self):
         return f"Photo: {self.title}"
