@@ -12,4 +12,4 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 CORS(app)
 
-from app import app, photo
+from app import photo, models
